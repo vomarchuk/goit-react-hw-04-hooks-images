@@ -1,9 +1,7 @@
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import React, { Component } from 'react';
-
+import { useState, useEffect } from 'react';
 import Loader from 'react-loader-spinner';
-
 import s from './App.module.css';
 import Container from '../Container';
 import Searchbar from '../Searchbar';
@@ -12,111 +10,95 @@ import getImagesCollections from '../../API/api-service';
 import Button from '../Button';
 import Modal from '../Modal';
 
-const status = {
+const statusOptions = {
   IDLE: 'idle',
   PENDING: 'pending',
   RESOLVED: 'resolved',
   REJECTED: 'rejected',
 };
 
-class App extends Component {
-  state = {
-    searchValue: '',
-    articles: [],
-    status: status.IDLE,
-    page: 1,
-    error: '',
-    showModal: false,
-    modalImage: '',
-  };
+export default function App() {
+  const [searchValue, setSearchValue] = useState('');
+  const [articles, setArticles] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [largeImageURL, setlargeImageURL] = useState(null);
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState(statusOptions.IDLE);
 
-  getImages(search, page) {
+  const { PENDING, RESOLVED, REJECTED } = statusOptions;
+
+  const getImages = (search, page) => {
     getImagesCollections(search, page)
-      .then(response =>
-        this.setState({
-          articles: [...this.state.articles, ...response],
-        }),
-      )
-      .catch(error => this.setState({ error }));
-  }
-
-  handlerSearchForm = searchValue => {
-    this.setState({
-      searchValue,
-      articles: [],
-      page: 1,
-      status: status.PENDING,
-    });
+      .then(response => {
+        setArticles(state => [...state, ...response]);
+        setStatus(statusOptions.RESOLVED);
+      })
+      .catch(error => {
+        setError(error);
+        setStatus(statusOptions.REJECTED);
+        console.log(error);
+      });
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const newSearch = this.state.searchValue;
-    const nextPage = this.state.page;
+  const handlerSearchForm = query => {
+    setStatus(statusOptions.PENDING);
+    setSearchValue(query);
+    setArticles([]);
+    setCurrentPage(1);
+  };
 
-    if (this.state.status === 'pending' && prevProps.prevProps !== this.props) {
-      this.setState({ status: status.RESOLVED });
-      this.getImages(newSearch, nextPage);
+  const handleIncrement = () => {
+    setCurrentPage(state => state + 1);
+  };
+
+  const openModal = imageUrl => {
+    setlargeImageURL(imageUrl);
+  };
+  const closeModal = () => {
+    setlargeImageURL('');
+  };
+
+  useEffect(() => {
+    if (searchValue === '') {
+      return;
     }
-    if (this.state.status === 'resolved' && prevState.page !== nextPage) {
-      this.getImages(newSearch, nextPage);
-    }
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    });
-  }
+    getImages(searchValue, currentPage);
+  }, [searchValue, currentPage]);
 
-  handleIncrement = () => {
-    this.setState({ page: this.state.page + 1 });
-  };
+  return (
+    <>
+      <Container>
+        <Searchbar onSubmit={handlerSearchForm} />
+      </Container>
 
-  openModal = url => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      modalImage: url,
-    }));
-  };
-  closeModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      modalImage: '',
-    }));
-  };
-
-  render() {
-    const { status, articles, showModal, modalImage } = this.state;
-    return (
-      <>
+      {largeImageURL && (
+        <Modal closeModal={closeModal}>
+          <img src={largeImageURL} alt="" className={s.modalImg} />
+        </Modal>
+      )}
+      {status === PENDING && (
+        <Loader
+          className={s.loader}
+          type="BallTriangle"
+          color="#00BFFF"
+          height={80}
+          width={80}
+        />
+      )}
+      {status === RESOLVED && (
+        <section className={s.section}>
+          <Container>
+            <ImageGallery search={articles} openModal={openModal} />
+            <Button incrementPage={handleIncrement} />
+          </Container>
+        </section>
+      )}
+      {status === REJECTED && (
         <Container>
-          <Searchbar onSubmit={this.handlerSearchForm} />
+          <h1>Упс.....чтото пошло не так</h1>
         </Container>
-
-        {showModal && (
-          <Modal closeModal={this.closeModal}>
-            <img src={modalImage} alt="" className={s.modalImg} />
-          </Modal>
-        )}
-        {status === 'pending' && (
-          <Loader
-            className={s.loader}
-            type="BallTriangle"
-            color="#00BFFF"
-            height={80}
-            width={80}
-          />
-        )}
-        {status === 'resolved' && (
-          <section className={s.section}>
-            <Container>
-              <ImageGallery search={articles} openModal={this.openModal} />
-              <Button incrementPage={this.handleIncrement} />
-            </Container>
-          </section>
-        )}
-        <ToastContainer autoClose={3000} />
-      </>
-    );
-  }
+      )}
+      <ToastContainer autoClose={3000} />
+    </>
+  );
 }
-
-export default App;

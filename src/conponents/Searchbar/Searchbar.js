@@ -7,7 +7,6 @@ import s from './Searchbar.module.css';
 
 export default function Searchbar({ onSubmit }) {
   const [searchValue, setSearchValue] = useState('');
-  console.log(onSubmit);
   const hundleChange = event => {
     event.preventDefault();
     setSearchValue(event.currentTarget.value);

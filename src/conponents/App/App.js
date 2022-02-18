@@ -36,7 +36,7 @@ export default function App() {
       .catch(error => {
         setError(error);
         setStatus(statusOptions.REJECTED);
-        console.log(error);
+        // console.log(error);
       });
   };
 

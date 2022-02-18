@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import s from './Modal.module.css';
+
 const modalRoot = document.querySelector('#modal-root');
 
 export default function Modal({ closeModal, children }) {
@@ -23,12 +24,13 @@ export default function Modal({ closeModal, children }) {
     <div className={s.overlay} onClick={handleBackdropClick}>
       <div className={s.modal}>
         <button
+          className={s.btn}
           type="button"
           onClick={() => {
             closeModal();
           }}
         >
-          Close
+          close
         </button>
         {children}
       </div>

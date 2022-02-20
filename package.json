@@ -1,8 +1,8 @@
 {
-  "name": "goit-react-hw-04-hooks-images",
+  "name": "react-hooks-images",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://vomarchuk.github.io/goit-react-hw-04-hooks-images",
+  "homepage": "https://vomarchuk.github.io/react-hooks-images",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",

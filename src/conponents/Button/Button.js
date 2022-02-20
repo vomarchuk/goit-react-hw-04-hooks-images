@@ -4,7 +4,7 @@ import s from './Button.module.css';
 
 const Button = ({ incrementPage }) => (
   <button type="button" className={s.button} onClick={incrementPage}>
-    Load mode
+    Load more
   </button>
 );
 export default Button;
